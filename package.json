@@ -42,7 +42,7 @@
 				"tws.trimOnSave": {
 					"type": "boolean",
 					"scope": "machine-overridable",
-					"default": false,
+					"default": true,
 					"description": "Trim trailing whitespace on save."
 				},
 				"tws.highlightTrailingWhiteSpace": {
@@ -50,6 +50,12 @@
 					"scope": "machine-overridable",
 					"default": false,
 					"description": "Highlight trailing whitespace."
+				},
+				"tws.highlightOnlyChangedLines": {
+					"type": "boolean",
+					"scope": "machine-overridable",
+					"default": false,
+					"description": "Highlight trailing whitespace only on lines modified."
 				},
 				"tws.debugLog": {
 					"type": "boolean",

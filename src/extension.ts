@@ -16,12 +16,11 @@ class TWSController {
 	private config: vscode.WorkspaceConfiguration;
 	private decorationtype: vscode.TextEditorDecorationType;
 	private outputChannel: vscode.OutputChannel;
+	private original: string | null;
 
 	constructor(config: vscode.WorkspaceConfiguration) {
 		this.config = config;
-		this.decorationtype = vscode.window.createTextEditorDecorationType({
-			backgroundColor: "rgba(230, 0, 0, 0.2)"
-		});
+		this.original = null;
 
 		this.outputChannel = vscode.window.createOutputChannel("TWS");
 		if (config.debugLog) {
@@ -29,6 +28,19 @@ class TWSController {
 		} else {
 			this.outputChannel.hide();
 		}
+
+		this.decorationtype = vscode.window.createTextEditorDecorationType({
+			backgroundColor: "rgba(230, 0, 0, 0.2)"
+		});
+
+		if (vscode.window.activeTextEditor && !vscode.window.activeTextEditor.document.isUntitled) {
+			this.outputChannel.appendLine("Loading document disk version.");
+			this.original = fs.readFileSync(vscode.window.activeTextEditor.document.fileName).toString();
+		} else if (vscode.window.activeTextEditor) {
+			this.outputChannel.appendLine("Document is Untitled, no original on disk yet.");
+			this.original = null;
+		}
+
 		const subscriptions: vscode.Disposable[] = [];
 
 		vscode.commands.registerCommand('tws.trimWhiteSpace', () => {
@@ -41,26 +53,31 @@ class TWSController {
 		});
 
 		vscode.workspace.onWillSaveTextDocument(this.onWillSaveDocument, this, subscriptions);
+
+		vscode.workspace.onDidSaveTextDocument((event) => {
+			this.outputChannel.appendLine("Document saved, setting original to content text.");
+			this.original = event.getText();
+		}, this, subscriptions);
+
 		vscode.workspace.onDidChangeConfiguration(this.onConfigChanged, this, subscriptions);
 
 		vscode.workspace.onDidChangeTextDocument((event) => {
 			if (!vscode.window.activeTextEditor) {
 				return;
 			}
-			this.decorateTrailingWhiteSpace(vscode.window.activeTextEditor);
-		});
+			if (event.document === vscode.window.activeTextEditor.document) {
+				this.decorateTrailingWhiteSpace(vscode.window.activeTextEditor);
+			}
+		}, this, subscriptions);
+
 		vscode.window.onDidChangeActiveTextEditor((editor) => {
 			if (!editor) {
 				return;
 			}
+			this.outputChannel.appendLine("TextEditor changed, loading original file from disk.");
+			this.original = fs.readFileSync(editor.document.fileName).toString();
 			this.decorateTrailingWhiteSpace(editor);
 		}, this, subscriptions);
-		vscode.window.onDidChangeTextEditorSelection((event) => {
-			if (!event.textEditor) {
-				return;
-			}
-			this.decorateTrailingWhiteSpace(event.textEditor);
-		});
 
 		this.disposable = vscode.Disposable.from(...subscriptions);
 	}
@@ -78,11 +95,21 @@ class TWSController {
 
 	onConfigChanged() {
 		this.config = vscode.workspace.getConfiguration('tws');
+		if (this.config.debugLog) {
+			this.outputChannel.show(true);
+		} else {
+			this.outputChannel.hide();
+		}
 	}
 
 	decorateTrailingWhiteSpace(editor: vscode.TextEditor) {
 		if (this.config.get('highlightTrailingWhiteSpace') === true) {
-			var ranges = this.findAllRanges(editor.document);
+			var ranges: vscode.Range[] = [];
+			if (this.config.get('highlightOnlyChangedLines') === true) {
+				ranges = this.findTrimRanges(editor.document);
+			} else {
+				ranges = this.findAllRanges(editor.document);
+			}
 			const decorationOptions: vscode.DecorationOptions[] = [];
 			ranges.map((r) => {
 				const decoration = { range: r };
@@ -102,7 +129,7 @@ class TWSController {
 			while (match = regEx.exec(line)) {
 				let startPos = new vscode.Position(i, match.index);
 				let endPos = new vscode.Position(i, match.index + match[0].length);
-				this.outputChannel.appendLine(`Range found: [${startPos.line}, ${startPos.character}] - [${endPos.line}, ${endPos.character}]`);
+				this.outputChannel.appendLine(`Whitespace found: [${startPos.line}, ${startPos.character}] - [${endPos.line}, ${endPos.character}]`);
 				ranges.push(new vscode.Range(startPos, endPos));
 			}
 		}
@@ -112,11 +139,9 @@ class TWSController {
 	findTrimRanges(document: vscode.TextDocument) {
 		const regEx = /\s+$/g;
 		var ranges: vscode.Range[] = [];
-		if (document.isDirty) {
-			// Read the disk version, apply line diff
-			let original = fs.readFileSync(document.fileName);
+		if (document.isDirty && this.original) {
 			var currentLine = 0;
-			diff.diffLines(original.toString(), document.getText()).map((value) => {
+			diff.diffLines(this.original.toString(), document.getText()).map((value) => {
 				if (value.added === undefined && value.removed === undefined) {
 					// Unedited line or lines (count tells the lines in diff change)
 					currentLine += value.count || 0;
@@ -131,7 +156,7 @@ class TWSController {
 						while (match = regEx.exec(line)) {
 							let startPos = new vscode.Position(currentLine, match.index);
 							let endPos = new vscode.Position(currentLine, match.index + match[0].length);
-							this.outputChannel.appendLine(`Range found: [${startPos.line}, ${startPos.character}] - [${endPos.line}, ${endPos.character}]`);
+							this.outputChannel.appendLine(`Whitespace found: [${startPos.line}, ${startPos.character}] - [${endPos.line}, ${endPos.character}]`);
 							ranges.push(new vscode.Range(startPos, endPos));
 						}
 						currentLine++;

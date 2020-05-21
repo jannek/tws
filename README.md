@@ -13,6 +13,7 @@ This extension contributes the following settings, all machine-overridable:
 
 * `tws.trimOnSave`: enable/disable trimming the whitespace when saving document
 * `tws.highlightTrailingWhiteSpace`: enable/disable highlighting of trailing whitespace
+* `tws.highlightOnlyChangedLines`: enable/disable highlighting of trailing whitespace only on changed lines
 * `tws.debugLog`: enable/disable debug log channel
 
 ## References
