@@ -3,7 +3,7 @@
 	"displayName": "Trailing Whitespace",
 	"description": "Highlight and remove trailing whitespaces the right way!",
 	"publisher": "jkiviluoto",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.45.0"
