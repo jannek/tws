@@ -45,6 +45,12 @@
 					"default": true,
 					"description": "Trim trailing whitespace on save."
 				},
+				"tws.trimLinesUserIsOn": {
+					"type": "boolean",
+					"scope": "machine-overridable",
+					"default": true,
+					"description": "Trim lines that user is currently editing."
+				},
 				"tws.highlightTrailingWhiteSpace": {
 					"type": "boolean",
 					"scope": "machine-overridable",
