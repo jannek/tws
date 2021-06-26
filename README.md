@@ -12,6 +12,7 @@ Trailing whitespace can be trimmed upon saving the file, but only from lines use
 This extension contributes the following settings, all machine-overridable:
 
 * `tws.trimOnSave`: enable/disable trimming the whitespace when saving document
+* `tws.trimLinesUserIsOn`: enable/disable trimming the whitespace when user is on the same line
 * `tws.highlightTrailingWhiteSpace`: enable/disable highlighting of trailing whitespace
 * `tws.highlightOnlyChangedLines`: enable/disable highlighting of trailing whitespace only on changed lines
 * `tws.debugLog`: enable/disable debug log channel

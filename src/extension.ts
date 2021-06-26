@@ -139,10 +139,16 @@ class TWSController {
 	findTrimRanges(document: vscode.TextDocument) {
 		const regEx = /\s+$/g;
 		var ranges: vscode.Range[] = [];
+		var activeEditor = vscode.window.activeTextEditor;
+		var userOnLine: number[] = [];
+		if (!this.config.get('trimLinesUserIsOn') && activeEditor) {
+			userOnLine = activeEditor.selections.map(i => i.active.line);
+		}
+
 		if (document.isDirty && this.original) {
 			var currentLine = 0;
 			diff.diffLines(this.original.toString(), document.getText()).map((value) => {
-				if (value.added === undefined && value.removed === undefined) {
+				if ((value.added === undefined && value.removed === undefined) || userOnLine.includes(currentLine)) {
 					// Unedited line or lines (count tells the lines in diff change)
 					currentLine += value.count || 0;
 				} else if (value.removed === undefined) {
