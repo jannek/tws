@@ -2,3 +2,8 @@ out
 node_modules
 .vscode-test/
 *.vsix
+
+# Yarn (if accidentally used)
+.yarn/
+.yarnrc.yml
+yarn.lock
