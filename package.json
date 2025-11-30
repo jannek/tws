@@ -62,6 +62,12 @@
 					"scope": "machine-overridable",
 					"default": false,
 					"description": "Is the debug channel activated?"
+				},
+				"tws.highlightCurrentLine": {
+					"type": "boolean",
+					"scope": "machine-overridable",
+					"default": false,
+					"description": "Highlight trailing whitespace on the current line (where cursor is located)."
 				}
 			}
 		}

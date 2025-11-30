@@ -17,10 +17,12 @@ class TWSController {
 	private decorationtype: vscode.TextEditorDecorationType;
 	private outputChannel: vscode.OutputChannel;
 	private original: string | null;
+	private currentLines: Set<number>;
 
 	constructor(config: vscode.WorkspaceConfiguration) {
 		this.config = config;
 		this.original = null;
+		this.currentLines = new Set<number>();
 
 		this.outputChannel = vscode.window.createOutputChannel("TWS");
 		if (config.debugLog) {
@@ -39,6 +41,11 @@ class TWSController {
 		} else if (vscode.window.activeTextEditor) {
 			this.outputChannel.appendLine("Document is Untitled, no original on disk yet.");
 			this.original = null;
+		}
+
+		// Track initial cursor position if there's an active editor
+		if (vscode.window.activeTextEditor) {
+			this.updateCurrentLines(vscode.window.activeTextEditor);
 		}
 
 		const subscriptions: vscode.Disposable[] = [];
@@ -76,7 +83,16 @@ class TWSController {
 			}
 			this.outputChannel.appendLine("TextEditor changed, loading original file from disk.");
 			this.original = fs.readFileSync(editor.document.fileName).toString();
+			this.updateCurrentLines(editor);
 			this.decorateTrailingWhiteSpace(editor);
+		}, this, subscriptions);
+
+		vscode.window.onDidChangeTextEditorSelection((event) => {
+			if (!event.textEditor) {
+				return;
+			}
+			this.updateCurrentLines(event.textEditor);
+			this.decorateTrailingWhiteSpace(event.textEditor);
 		}, this, subscriptions);
 
 		this.disposable = vscode.Disposable.from(...subscriptions);
@@ -102,6 +118,15 @@ class TWSController {
 		}
 	}
 
+	private updateCurrentLines(editor: vscode.TextEditor) {
+		this.currentLines.clear();
+		for (const selection of editor.selections) {
+			for (let line = selection.start.line; line <= selection.end.line; line++) {
+				this.currentLines.add(line);
+			}
+		}
+	}
+
 	decorateTrailingWhiteSpace(editor: vscode.TextEditor) {
 		if (this.config.get('highlightTrailingWhiteSpace') === true) {
 			var ranges: vscode.Range[] = [];
@@ -110,6 +135,14 @@ class TWSController {
 			} else {
 				ranges = this.findAllRanges(editor.document);
 			}
+
+			// Filter out current line(s) if highlightCurrentLine is false
+			if (this.config.get('highlightCurrentLine') !== true) {
+				ranges = ranges.filter((range) => {
+					return !this.currentLines.has(range.start.line);
+				});
+			}
+
 			const decorationOptions: vscode.DecorationOptions[] = [];
 			ranges.map((r) => {
 				const decoration = { range: r };
