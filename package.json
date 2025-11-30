@@ -68,6 +68,12 @@
 					"scope": "machine-overridable",
 					"default": false,
 					"description": "Highlight trailing whitespace on the current line (where cursor is located)."
+				},
+				"tws.highlightColor": {
+					"type": "string",
+					"scope": "machine-overridable",
+					"default": "rgba(230, 0, 0, 0.2)",
+					"description": "Color for trailing whitespace highlight. Accepts any valid CSS color (hex, rgb, rgba, named colors)."
 				}
 			}
 		}

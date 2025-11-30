@@ -31,9 +31,7 @@ class TWSController {
 			this.outputChannel.hide();
 		}
 
-		this.decorationtype = vscode.window.createTextEditorDecorationType({
-			backgroundColor: "rgba(230, 0, 0, 0.2)"
-		});
+		this.decorationtype = this.createDecorationType();
 
 		if (vscode.window.activeTextEditor && !vscode.window.activeTextEditor.document.isUntitled) {
 			this.outputChannel.appendLine("Loading document disk version.");
@@ -110,7 +108,22 @@ class TWSController {
 	}
 
 	onConfigChanged() {
+		const oldConfig = this.config;
 		this.config = vscode.workspace.getConfiguration('tws');
+
+		// Recreate decoration type if color changed
+		const oldColor = oldConfig.get('highlightColor');
+		const newColor = this.config.get('highlightColor');
+		if (oldColor !== newColor) {
+			this.decorationtype.dispose();
+			this.decorationtype = this.createDecorationType();
+
+			// Re-apply decorations with new color if an editor is active
+			if (vscode.window.activeTextEditor) {
+				this.decorateTrailingWhiteSpace(vscode.window.activeTextEditor);
+			}
+		}
+
 		if (this.config.debugLog) {
 			this.outputChannel.show(true);
 		} else {
@@ -125,6 +138,13 @@ class TWSController {
 				this.currentLines.add(line);
 			}
 		}
+	}
+
+	private createDecorationType(): vscode.TextEditorDecorationType {
+		const color = this.config.get<string>('highlightColor') || 'rgba(230, 0, 0, 0.2)';
+		return vscode.window.createTextEditorDecorationType({
+			backgroundColor: color
+		});
 	}
 
 	decorateTrailingWhiteSpace(editor: vscode.TextEditor) {

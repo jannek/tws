@@ -129,3 +129,58 @@ suite('Current Line Highlighting Tests', () => {
 		assert.strictEqual(defaultValue, false, 'highlightCurrentLine should default to false');
 	});
 });
+
+suite('Highlight Color Configuration Tests', () => {
+	teardown(async () => {
+		// Reset configuration after each test
+		const config = vscode.workspace.getConfiguration('tws');
+		await config.update('highlightColor', undefined, vscode.ConfigurationTarget.Global);
+	});
+
+	test('Configuration defaults - highlightColor should be red rgba', async () => {
+		const config = vscode.workspace.getConfiguration('tws');
+		const defaultValue = config.inspect('highlightColor')?.defaultValue;
+
+		assert.strictEqual(defaultValue, 'rgba(230, 0, 0, 0.2)', 'highlightColor should default to rgba(230, 0, 0, 0.2)');
+	});
+
+	test('Should accept hex color format', async () => {
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', '#ff0000', vscode.ConfigurationTarget.Global);
+
+		const value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, '#ff0000', 'highlightColor should accept hex format');
+	});
+
+	test('Should accept rgb color format', async () => {
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', 'rgb(255, 0, 0)', vscode.ConfigurationTarget.Global);
+
+		const value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, 'rgb(255, 0, 0)', 'highlightColor should accept rgb format');
+	});
+
+	test('Should accept rgba color format', async () => {
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', 'rgba(0, 255, 0, 0.5)', vscode.ConfigurationTarget.Global);
+
+		const value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, 'rgba(0, 255, 0, 0.5)', 'highlightColor should accept rgba format');
+	});
+
+	test('Should accept named color format', async () => {
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', 'blue', vscode.ConfigurationTarget.Global);
+
+		const value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, 'blue', 'highlightColor should accept named colors');
+	});
+
+	test('Should update color when configuration changes', async () => {
+		// Set initial color
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', 'red', vscode.ConfigurationTarget.Global);
+		let value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, 'red', 'highlightColor should be red');
+
+		// Change color
+		await vscode.workspace.getConfiguration('tws').update('highlightColor', 'blue', vscode.ConfigurationTarget.Global);
+		value = vscode.workspace.getConfiguration('tws').get('highlightColor');
+		assert.strictEqual(value, 'blue', 'highlightColor should update to blue');
+	});
+});

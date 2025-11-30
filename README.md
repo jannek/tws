@@ -4,7 +4,7 @@ Highlight and trim trailing whitespace.
 
 ## Features
 
-All trailing whitespace can be decorated with red highlight.
+All trailing whitespace can be highlighted with a customizable color.
 Trailing whitespace can be trimmed upon saving the file, but only from lines user has modified.
 
 ## Extension Settings
@@ -15,6 +15,7 @@ This extension contributes the following settings, all machine-overridable:
 * `tws.highlightTrailingWhiteSpace`: enable/disable highlighting of trailing whitespace
 * `tws.highlightOnlyChangedLines`: enable/disable highlighting of trailing whitespace only on changed lines
 * `tws.highlightCurrentLine`: enable/disable highlighting of trailing whitespace on the current line (where cursor is located). Default is `false`.
+* `tws.highlightColor`: color for trailing whitespace highlight. Accepts any valid CSS color (hex, rgb, rgba, named colors). Default is `rgba(230, 0, 0, 0.2)`.
 * `tws.debugLog`: enable/disable debug log channel
 
 ## References
