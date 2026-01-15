@@ -99,6 +99,6 @@
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
-		"diff": "^8.0.2"
+		"diff": "^8.0.3"
 	}
 }
